@@ -58,10 +58,6 @@ def mock_llm_call(user_request: str) -> Dict[str, object]:
     }
 
 
-def mock_zhipu_call(user_request: str) -> Dict[str, object]:
-    return mock_llm_call(user_request)
-
-
 def plan_hardware(user_request: str) -> HardwareSpec:
     spec_payload = mock_llm_call(user_request)
     return HardwareSpec(**spec_payload)

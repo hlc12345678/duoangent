@@ -161,6 +161,3 @@ def revise_code(spec: HardwareSpec, previous_code: str, feedback: List[str]) -> 
     updated_code = mock_llm_call(spec, feedback)
     return updated_code or previous_code
 
-
-def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -> str:
-    return mock_llm_call(spec, feedback)
