@@ -33,7 +33,10 @@ def _detect_memory_leaks(code: str) -> List[str]:
 def _detect_deadlocks(code: str) -> List[str]:
     issues = []
     if "portMAX_DELAY" in code:
-        issues.append("Potential RTOS deadlock risk: blocking call uses portMAX_DELAY.")
+        issues.append(
+            "Potential RTOS deadlock risk: blocking call uses portMAX_DELAY; "
+            "consider a bounded timeout to avoid hangs if the resource is unavailable."
+        )
     if re.search(r"xSemaphoreTake\([^,]+,\s*0[Uu]?\s*\)", code):
         issues.append(
             "Heuristic warning: semaphore take uses a literal zero timeout."
@@ -44,9 +47,15 @@ def _detect_deadlocks(code: str) -> List[str]:
 def _detect_buffer_overflows(code: str) -> List[str]:
     issues = []
     if re.search(r"\bstrcpy\s*\(", code):
-        issues.append("Potential buffer overflow: strcpy used without bounds checking.")
+        issues.append(
+            "Potential buffer overflow: strcpy used without bounds checking. "
+            "Consider strncpy or memcpy with explicit length."
+        )
     if re.search(r"\bsprintf\s*\(", code):
-        issues.append("Potential buffer overflow: sprintf used without bounds checking.")
+        issues.append(
+            "Potential buffer overflow: sprintf used without bounds checking. "
+            "Consider snprintf to enforce bounds."
+        )
     return issues
 
 

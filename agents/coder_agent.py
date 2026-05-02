@@ -7,7 +7,7 @@ from typing import List, Optional
 from .planner_agent import HardwareSpec
 
 
-def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -> str:
+def mock_llm_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -> str:
     feedback_text = " ".join(feedback or [])
     uses_timeout = "timeout" in feedback_text.lower()
     timeout_ticks = "pdMS_TO_TICKS(200)" if uses_timeout else "portMAX_DELAY"
@@ -152,11 +152,15 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
 
 
 def generate_code(spec: HardwareSpec) -> str:
-    return mock_doubao_call(spec)
+    return mock_llm_call(spec)
 
 
 def revise_code(spec: HardwareSpec, previous_code: str, feedback: List[str]) -> str:
     if not feedback:
         return previous_code
-    updated_code = mock_doubao_call(spec, feedback)
+    updated_code = mock_llm_call(spec, feedback)
     return updated_code or previous_code
+
+
+def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -> str:
+    return mock_llm_call(spec, feedback)
