@@ -97,6 +97,7 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
                 if (xSemaphoreTake(i2c_mutex, {timeout_ticks}) == pdTRUE) {{
                     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
                     if (cmd == NULL) {{
+                        xSemaphoreGive(i2c_mutex);
                         vTaskDelay(pdMS_TO_TICKS(50));
                         continue;
                     }}
@@ -111,6 +112,7 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
                     );
                     i2c_cmd_link_delete(cmd);
                     if (ret != ESP_OK) {{
+                        xSemaphoreGive(i2c_mutex);
                         vTaskDelay(pdMS_TO_TICKS(50));
                         continue;
                     }}
