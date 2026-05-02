@@ -1,0 +1,18 @@
+# Multi-Agent Autonomous Coding & Verification Framework for Embedded Systems
+# Python dependencies
+
+# ZhipuAI SDK (GLM-4 — used by PlannerAgent and ReviewerAgent in production)
+zhipuai>=2.1.0
+
+# ByteDance Doubao / Ark SDK (used by CoderAgent in production)
+# Doubao is OpenAI-API-compatible; the openai library is used as the client.
+openai>=1.30.0
+
+# Rich terminal output (optional — enhances CLI readability)
+rich>=13.7.0
+
+# Pydantic for data validation (optional — for strict HardwareSpec validation)
+pydantic>=2.6.0
+
+# Python standard library modules used (no install needed):
+#   argparse, dataclasses, datetime, json, re, sys, textwrap, typing
