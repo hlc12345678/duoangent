@@ -5,6 +5,10 @@ import re
 from typing import List
 
 
+PASS_STATUS = "Pass"
+FAIL_STATUS = "Fail with feedback"
+
+
 @dataclass(frozen=True)
 class ReviewResult:
     status: str
@@ -12,13 +16,15 @@ class ReviewResult:
 
     @property
     def passed(self) -> bool:
-        return self.status == "Pass"
+        return self.status == PASS_STATUS
 
 
 def _detect_memory_leaks(code: str) -> List[str]:
     issues = []
     if re.search(r"\bmalloc\s*\(", code) and not re.search(r"\bfree\s*\(", code):
-        issues.append("Potential memory leak: malloc used without matching free.")
+        issues.append(
+            "Heuristic warning: malloc used without matching free; verify ownership."
+        )
     if re.search(r"\bnew\b", code) and not re.search(r"\bdelete\b", code):
         issues.append("Potential memory leak: new used without matching delete.")
     return issues
@@ -48,5 +54,5 @@ def review_code(code: str) -> ReviewResult:
     feedback.extend(_detect_deadlocks(code))
     feedback.extend(_detect_buffer_overflows(code))
 
-    status = "Pass" if not feedback else "Fail with feedback"
+    status = PASS_STATUS if not feedback else FAIL_STATUS
     return ReviewResult(status=status, feedback=feedback)

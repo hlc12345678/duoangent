@@ -16,6 +16,8 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
             f"""
             #include "main.h"
             #include "cmsis_os.h"
+            #include "FreeRTOS.h"
+            #include "task.h"
 
             #define I2C_SCL_PIN {spec.pins.get("SCL", "PB8")}
             #define I2C_SDA_PIN {spec.pins.get("SDA", "PB9")}
@@ -45,7 +47,12 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
             void StartDefaultTask(void *argument) {{
                 MX_I2C1_Init();
                 i2c_mutex = xSemaphoreCreateMutex();
-                xTaskCreate(DisplayTask, "display", 512, NULL, osPriorityNormal, NULL);
+                if (i2c_mutex == NULL) {{
+                    return;
+                }}
+                if (xTaskCreate(DisplayTask, "display", 512, NULL, osPriorityNormal, NULL) != pdPASS) {{
+                    return;
+                }}
                 for (;;) {{
                     osDelay(1000);
                 }}
@@ -57,6 +64,7 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
         f"""
         #include <string.h>
         #include "driver/i2c.h"
+        #include "esp_err.h"
         #include "freertos/FreeRTOS.h"
         #include "freertos/task.h"
         #include "freertos/semphr.h"
@@ -88,12 +96,24 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
             for (;;) {{
                 if (xSemaphoreTake(i2c_mutex, {timeout_ticks}) == pdTRUE) {{
                     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+                    if (cmd == NULL) {{
+                        vTaskDelay(pdMS_TO_TICKS(50));
+                        continue;
+                    }}
                     i2c_master_start(cmd);
                     i2c_master_write_byte(cmd, (OLED_ADDR << 1) | I2C_MASTER_WRITE, true);
                     i2c_master_write(cmd, display_frame, sizeof(display_frame), true);
                     i2c_master_stop(cmd);
-                    i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdMS_TO_TICKS(50));
+                    esp_err_t ret = i2c_master_cmd_begin(
+                        I2C_MASTER_NUM,
+                        cmd,
+                        pdMS_TO_TICKS(50)
+                    );
                     i2c_cmd_link_delete(cmd);
+                    if (ret != ESP_OK) {{
+                        vTaskDelay(pdMS_TO_TICKS(50));
+                        continue;
+                    }}
                     xSemaphoreGive(i2c_mutex);
                 }}
                 vTaskDelay(pdMS_TO_TICKS(100));
@@ -103,7 +123,12 @@ def mock_doubao_call(spec: HardwareSpec, feedback: Optional[List[str]] = None) -
         void app_main(void) {{
             i2c_master_init();
             i2c_mutex = xSemaphoreCreateMutex();
-            xTaskCreate(display_update_task, "display_update", 4096, NULL, 5, NULL);
+            if (i2c_mutex == NULL) {{
+                return;
+            }}
+            if (xTaskCreate(display_update_task, "display_update", 4096, NULL, 5, NULL) != pdPASS) {{
+                return;
+            }}
         }}
         """
     ).strip()

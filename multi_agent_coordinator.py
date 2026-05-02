@@ -11,7 +11,7 @@ from agents.reviewer_agent import ReviewResult, review_code
 
 def run_workflow(user_request: str) -> Tuple[HardwareSpec, str, AgentMemory]:
     spec = plan_hardware(user_request)
-    memory = AgentMemory(max_iterations=3)
+    memory = AgentMemory()
 
     code = generate_code(spec)
     while True:
