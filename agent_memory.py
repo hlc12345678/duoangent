@@ -34,4 +34,5 @@ class AgentMemory:
     def last_feedback(self) -> List[str]:
         if not self.history:
             return []
-        return self.history[-1].review.feedback if self.history[-1].review else []
+        review = self.history[-1].review
+        return review.feedback if review else []
