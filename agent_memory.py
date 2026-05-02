@@ -17,6 +17,7 @@ class IterationRecord:
 class AgentMemory:
     max_iterations: int = 3
     history: List[IterationRecord] = field(default_factory=list)
+    termination_reason: Optional[str] = None
 
     def add_iteration(self, code_snapshot: str, review: ReviewResult) -> None:
         record = IterationRecord(

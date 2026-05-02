@@ -18,7 +18,12 @@ def run_workflow(user_request: str) -> Tuple[HardwareSpec, str, AgentMemory]:
         review = review_code(code)
         memory.add_iteration(code, review)
 
-        if review.passed or not memory.can_iterate:
+        if review.passed:
+            memory.termination_reason = "passed_review"
+            break
+
+        if not memory.can_iterate:
+            memory.termination_reason = "max_iterations_reached"
             break
 
         code = revise_code(spec, code, memory.last_feedback)
@@ -63,6 +68,8 @@ def main() -> None:
     if memory.history:
         print(_format_review(memory.history[-1].review))
         print(f"Iterations: {len(memory.history)} / {memory.max_iterations}")
+        if memory.termination_reason:
+            print(f"Termination: {memory.termination_reason}")
 
 
 if __name__ == "__main__":
