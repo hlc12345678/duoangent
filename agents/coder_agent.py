@@ -116,6 +116,7 @@ def mock_doubao_call(system_prompt: str, user_message: str) -> str:
 #define OLED_I2C_ADDR       {i2c_addr}
 #define OLED_SCREEN_WIDTH   128
 #define OLED_SCREEN_HEIGHT  64
+#define FRAME_BUFFER_SIZE   (OLED_SCREEN_WIDTH * OLED_SCREEN_HEIGHT / 8U)
 #define DISPLAY_PERIOD_MS   {period_ms}
 #define TASK_STACK_SIZE     {stack_size}
 #define TASK_PRIORITY       {priority}
@@ -269,7 +270,7 @@ static void {task_name}(void *pvParameters)
 
     for (;;) {{
         /* --- Update frame buffer --- */
-        memset(s_frame_buffer, 0, OLED_SCREEN_WIDTH * OLED_SCREEN_HEIGHT / 8);
+        memset(s_frame_buffer, 0, FRAME_BUFFER_SIZE);
 
         /* Simple animated pattern: invert alternating rows per frame */
         for (int page = 0; page < 8; page++) {{
@@ -280,7 +281,7 @@ static void {task_name}(void *pvParameters)
         /* --- Flush to display under mutex --- */
         if (xSemaphoreTake(s_i2c_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {{
             err = oled_flush_buffer(s_frame_buffer,
-                                    OLED_SCREEN_WIDTH * OLED_SCREEN_HEIGHT / 8);
+                                    FRAME_BUFFER_SIZE);
             xSemaphoreGive(s_i2c_mutex);
 
             if (err != ESP_OK) {{
@@ -317,13 +318,13 @@ void app_main(void)
 
     /* Allocate display frame buffer — guarded heap allocation */
     s_frame_buffer = (uint8_t *)pvPortMalloc(
-        OLED_SCREEN_WIDTH * OLED_SCREEN_HEIGHT / 8);
+        FRAME_BUFFER_SIZE);
     if (s_frame_buffer == NULL) {{
         ESP_LOGE(TAG, "Frame buffer allocation failed — halting");
         vSemaphoreDelete(s_i2c_mutex);
         return;
     }}
-    memset(s_frame_buffer, 0, OLED_SCREEN_WIDTH * OLED_SCREEN_HEIGHT / 8);
+    memset(s_frame_buffer, 0, FRAME_BUFFER_SIZE);
 
     xTaskCreate({task_name},
                 "{task_name}",
