@@ -34,8 +34,10 @@ def _detect_deadlocks(code: str) -> List[str]:
     issues = []
     if "portMAX_DELAY" in code:
         issues.append("Potential RTOS deadlock risk: blocking call uses portMAX_DELAY.")
-    if re.search(r"xSemaphoreTake\([^,]+,\s*0\)", code):
-        issues.append("Potential starvation risk: semaphore take with zero timeout.")
+    if re.search(r"xSemaphoreTake\([^,]+,\s*0[Uu]?\)", code):
+        issues.append(
+            "Heuristic warning: semaphore take uses a literal zero timeout."
+        )
     return issues
 
 

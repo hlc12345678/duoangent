@@ -141,4 +141,5 @@ def generate_code(spec: HardwareSpec) -> str:
 def revise_code(spec: HardwareSpec, previous_code: str, feedback: List[str]) -> str:
     if not feedback:
         return previous_code
-    return mock_doubao_call(spec, feedback)
+    updated_code = mock_doubao_call(spec, feedback)
+    return updated_code if updated_code != previous_code else previous_code
